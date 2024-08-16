@@ -1,5 +1,4 @@
-﻿
-namespace Infrastructure.MassTransit.Messages
+﻿namespace Infrastructure.RabbitMq.MassTransit.Messages
 {
     public class TagUpdatedValueMessage
     {

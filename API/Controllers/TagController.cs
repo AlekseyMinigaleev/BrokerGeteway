@@ -1,39 +1,37 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using MassTransit;
-using Infrastructure.MassTransit.Consumers;
-using System.Reflection.Metadata;
+﻿using Infrastructure.RabbitMq.Services;
+using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using System.Net.WebSockets;
+using System.Text;
 
 namespace API.Controllers
 {
-    //[ApiExplorerSettings(IgnoreApi = true)]
-    [Route("api/[controller]/[action]")]
+    [Route("[controller]")]
     public class TagController(
-        IBus bus) : ControllerBase
+        TagSubscriptionService subscriptionService) : WebSocketControllerBase
     {
-        private readonly IBus _bus = bus;
+        private readonly TagSubscriptionService _subscriptionService = subscriptionService;
 
         [HttpGet]
-        public async Task GetTagAsync(int[] tagIds)
+        public async Task<IActionResult> GetTagAsync(
+            [FromQuery] int[] tagIds,
+            CancellationToken cancellationToken)
         {
-            var queueName = string.Join(", ", tagIds);
-
-            var handle = _bus.ConnectReceiveEndpoint(queueName, x =>
+            return await HandleWebSocketRequestAsync(webSocket =>
             {
-                x.ConfigureConsumeTopology = false;
+                _subscriptionService.CreateQueueAndBind(tagIds, async message =>
+                {
+                    var response = Encoding.UTF8
+                        .GetBytes(JsonConvert.SerializeObject(message));
 
-                x.Consumer<TagUpdatedValueConsumer>();
-            });
-            //if (HttpContext.WebSockets.IsWebSocketRequest)
-            //{
-            //    using var webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
-            //    _logger.LogInformation($"Sub with tags{queueName} websocket is open.");
+                    await webSocket.SendAsync(
+                        buffer: new ArraySegment<byte>(response),
+                        messageType: WebSocketMessageType.Text,
+                        endOfMessage: true,
+                        cancellationToken: cancellationToken);
+                });
 
-
-            //}
-            //else
-            //{
-            //    HttpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
-            //}
+            }, cancellationToken);
         }
     }
 }

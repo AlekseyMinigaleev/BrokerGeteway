@@ -1,7 +1,7 @@
-﻿using Infrastructure.MassTransit.Messages;
+﻿using Infrastructure.RabbitMq.MassTransit.Messages;
 using MassTransit;
 
-namespace Infrastructure.MassTransit.Consumers
+namespace Infrastructure.RabbitMq.MassTransit.Consumers
 {
     public class TagUpdatedValueConsumer : IConsumer<TagUpdatedValueMessage>
     {
