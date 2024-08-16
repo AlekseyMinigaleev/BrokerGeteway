@@ -6,8 +6,8 @@ using System.Text;
 
 namespace API.Controllers
 {
-    [Route("[controller]")]
-    public class TagController(
+    [Route("Tag")]
+    public class TagWebSocketController(
         TagSubscriptionService subscriptionService) : WebSocketControllerBase
     {
         private readonly TagSubscriptionService _subscriptionService = subscriptionService;
