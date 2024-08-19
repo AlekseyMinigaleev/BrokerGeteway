@@ -20,9 +20,6 @@ namespace Infrastructure.RabbitMq.Services
             int[] tagIds,
             Action<TagUpdatedValueMessage> onMessageReceived)
         {
-            var tagsPrefix = string.Join("_", tagIds);
-            _queueName = $"[{tagsPrefix}]_tag_value_updated_queue";
-
             _channel = _connection.CreateModel();
 
             DeclareQueueAndExchange();
@@ -34,16 +31,12 @@ namespace Infrastructure.RabbitMq.Services
 
         private void DeclareQueueAndExchange()
         {
+            _queueName = _channel.QueueDeclare().QueueName;
+
             _channel.ExchangeDeclare(
                 exchange: ExchangeName,
                 type: ExchangeType.Direct,
                 durable: false,
-                autoDelete: true);
-
-            _channel.QueueDeclare(
-                queue: _queueName,
-                durable: false,
-                exclusive: false,
                 autoDelete: true);
         }
 
