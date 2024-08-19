@@ -13,6 +13,7 @@ namespace API.Controllers
         private readonly TagSubscriptionService _subscriptionService = subscriptionService;
 
         public async Task<IActionResult> GetTagAsync(
+            [FromQuery] bool isTemporary,
             CancellationToken cancellationToken)
         {
             return await HandleWebSocketRequestAsync(async webSocket =>
@@ -22,19 +23,23 @@ namespace API.Controllers
                 var message = Encoding.UTF8.GetString(buffer.Array, 0, result.Count);
                 var tagIds = JsonConvert.DeserializeObject<int[]>(message);
              
-                _subscriptionService.CreateQueueAndBind(tagIds, async message =>
-                {
-                    var response = Encoding.UTF8
-                        .GetBytes(JsonConvert.SerializeObject(message));
+                _subscriptionService.CreateQueueAndBind(
+                    tagIds,
+                    isTemporary,
+                    async message =>
+                    {
+                        var response = Encoding.UTF8
+                            .GetBytes(JsonConvert.SerializeObject(message));
 
-                    await webSocket.SendAsync(
-                        buffer: new ArraySegment<byte>(response),
-                        messageType: WebSocketMessageType.Text,
-                        endOfMessage: true,
-                        cancellationToken: cancellationToken);
-                });
+                        await webSocket.SendAsync(
+                            buffer: new ArraySegment<byte>(response),
+                            messageType: WebSocketMessageType.Text,
+                            endOfMessage: true,
+                            cancellationToken: cancellationToken);
+                    });
 
-            }, cancellationToken);
+            },
+            cancellationToken);
         }
     }
 }

@@ -18,20 +18,33 @@ namespace Infrastructure.RabbitMq.Services
 
         public string CreateQueueAndBind(
             int[] tagIds,
+            bool isTemporary,
             Action<TagUpdatedValueMessage> onMessageReceived)
         {
             _channel = _connection.CreateModel();
 
-            DeclareQueueAndExchange();
+            DeclareQueueAndExchange(isTemporary);
             BindQueueToExchange(tagIds);
             ConsumeMessages(onMessageReceived);
 
             return _queueName;
         }
 
-        private void DeclareQueueAndExchange()
+        private void DeclareQueueAndExchange(bool isTemporary)
         {
-            _queueName = _channel.QueueDeclare().QueueName;
+            if (isTemporary)
+            {
+                _queueName = _channel.QueueDeclare().QueueName;
+            }
+            else
+            {
+                _queueName = "tag_value_updated_permanent_queue";
+                _channel.QueueDeclare(
+                    queue: _queueName,
+                    durable: true,
+                    autoDelete:false
+                    );
+            }
 
             _channel.ExchangeDeclare(
                 exchange: ExchangeName,
@@ -78,5 +91,4 @@ namespace Infrastructure.RabbitMq.Services
             return tagValueUpdatedMessage;
         }
     }
-
 }
