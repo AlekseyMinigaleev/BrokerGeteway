@@ -12,13 +12,16 @@ namespace API.Controllers
     {
         private readonly TagSubscriptionService _subscriptionService = subscriptionService;
 
-        [HttpGet]
         public async Task<IActionResult> GetTagAsync(
-            [FromQuery] int[] tagIds,
             CancellationToken cancellationToken)
         {
-            return await HandleWebSocketRequestAsync(webSocket =>
+            return await HandleWebSocketRequestAsync(async webSocket =>
             {
+                var buffer = new ArraySegment<byte>(new byte[4096]);
+                var result = await webSocket.ReceiveAsync(buffer, CancellationToken.None);
+                var message = Encoding.UTF8.GetString(buffer.Array, 0, result.Count);
+                var tagIds = JsonConvert.DeserializeObject<int[]>(message);
+             
                 _subscriptionService.CreateQueueAndBind(tagIds, async message =>
                 {
                     var response = Encoding.UTF8
