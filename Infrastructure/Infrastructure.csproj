@@ -21,7 +21,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="Protos\tag.proto" GrpcServices="None" />
+    <Protobuf Include="../protos/Tag/*.proto" />
   </ItemGroup>
-
 </Project>
