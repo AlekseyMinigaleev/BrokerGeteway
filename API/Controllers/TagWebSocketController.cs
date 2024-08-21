@@ -22,10 +22,9 @@ namespace API.Controllers
                 var result = await webSocket.ReceiveAsync(buffer, CancellationToken.None);
                 var message = Encoding.UTF8.GetString(buffer.Array, 0, result.Count);
                 var tagIds = JsonConvert.DeserializeObject<int[]>(message);
-             
+
                 _subscriptionService.CreateQueueAndBind(
                     tagIds,
-                    isTemporary,
                     async message =>
                     {
                         var response = Encoding.UTF8
@@ -36,7 +35,8 @@ namespace API.Controllers
                             messageType: WebSocketMessageType.Text,
                             endOfMessage: true,
                             cancellationToken: cancellationToken);
-                    });
+                    },
+                    isTemporary);
 
             },
             cancellationToken);
