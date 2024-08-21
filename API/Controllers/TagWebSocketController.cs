@@ -12,20 +12,17 @@ namespace API.Controllers
     {
         private readonly TagSubscriptionService _subscriptionService = subscriptionService;
 
-        public async Task<IActionResult> GetTagAsync(
-            [FromQuery] bool isTemporary,
-            CancellationToken cancellationToken)
+        [HttpGet("GetTags")]
+        public async Task<IActionResult> GetTagsAsync(
+            CancellationToken cancellationToken,
+            [FromQuery] bool isTemporary = true)
         {
             return await HandleWebSocketRequestAsync(async webSocket =>
             {
-                var buffer = new ArraySegment<byte>(new byte[4096]);
-                var result = await webSocket.ReceiveAsync(buffer, CancellationToken.None);
-                var message = Encoding.UTF8.GetString(buffer.Array, 0, result.Count);
-                var tagIds = JsonConvert.DeserializeObject<int[]>(message);
-             
+                var tagIds = await GetTagIdsFromAsync(webSocket,cancellationToken);
+
                 _subscriptionService.CreateQueueAndBind(
                     tagIds,
-                    isTemporary,
                     async message =>
                     {
                         var response = Encoding.UTF8
@@ -36,10 +33,29 @@ namespace API.Controllers
                             messageType: WebSocketMessageType.Text,
                             endOfMessage: true,
                             cancellationToken: cancellationToken);
-                    });
+                    },
+                    isTemporary);
 
             },
             cancellationToken);
+        }
+
+        private static async Task<int[]?> GetTagIdsFromAsync(
+            WebSocket webSocket,
+            CancellationToken cancellationToken)
+        {
+            var buffer = new ArraySegment<byte>(new byte[4096]);
+            var result = await webSocket.ReceiveAsync(buffer, cancellationToken);
+            if (buffer.Array is null)
+                throw new InvalidOperationException(
+                    "The buffer array is unexpectedly null. " +
+                    "This indicates an issue with memory allocation " +
+                    "or an unexpected state in the WebSocket data reception.");
+
+            var message = Encoding.UTF8.GetString(buffer.Array, 0, result.Count);
+            var tagIds = JsonConvert.DeserializeObject<int[]>(message);
+
+            return tagIds;
         }
     }
 }
