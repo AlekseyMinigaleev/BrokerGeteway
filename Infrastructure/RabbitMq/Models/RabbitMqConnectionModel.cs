@@ -1,4 +1,4 @@
-﻿namespace Infrastructure.RabbitMq.MassTransit.Models
+﻿namespace Infrastructure.RabbitMq.Models
 {
     public class RabbitMqConnectionModel
     {

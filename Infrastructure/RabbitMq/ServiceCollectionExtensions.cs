@@ -1,4 +1,4 @@
-﻿using Infrastructure.RabbitMq.MassTransit.Models;
+﻿using Infrastructure.RabbitMq.Models;
 using Infrastructure.RabbitMq.Services;
 using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client;
