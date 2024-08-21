@@ -1,3 +1,3 @@
 [submodule "protos"]
 	path = protos
-	url = https://github.com/AlekseyMinigaleev/ProtoContracts
+	url = https://github.com/AlekseyMinigaleev/ProtoContracts.git

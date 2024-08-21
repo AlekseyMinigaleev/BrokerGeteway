@@ -19,7 +19,7 @@ namespace API.Controllers
         {
             return await HandleWebSocketRequestAsync(async webSocket =>
             {
-                var tagIds = await GetTagIdsFromAsync(webSocket,cancellationToken);
+                var tagIds = await GetTagIdsFromAsync(webSocket, cancellationToken);
 
                 _subscriptionService.CreateQueueAndBind(
                     tagIds,
